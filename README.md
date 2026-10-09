@@ -24,6 +24,10 @@ in production, from complaints.
 Everything runs locally: no cloud APIs, no GPU. It works on an ordinary Windows
 laptop with Python only.
 
+![Voice demo: a short billing call typed into the text box, then "I want to speak to a person" opens the red Escalated to human panel with the handoff summary](docs/media/voice-demo.gif)
+
+*The `vae serve` voice demo driven through its text box (no mic): a bill query, account lookup, then an explicit request for a person triggers escalation with a handoff summary.*
+
 ### Who it's for
 
 - People building voice or chat agents who want a regression suite they can run on every prompt or model change.
@@ -154,6 +158,10 @@ useful. In `ambiguous_request` the caller says their bill is "higher than last
 month". The rules don't treat that as a dispute, so the agent reads out the
 total but never explains the new *Static IP add-on* line. That is exactly the
 kind of gap the suite is meant to catch.
+
+![HTML eval report: summary cards (24/25 passed) and the scenario table with the failing ambiguous_request row expanded to show its transcript and tool calls](docs/media/eval-report.png)
+
+*`results/report.html` from a real `vae run`. Click any row to see the transcript, tool calls and final backend state. Here the failing `ambiguous_request` row is expanded.*
 
 **API cost is $0** because every model runs on your machine. There is no
 per-token bill. The real cost of a local model is compute: wall-clock time and
