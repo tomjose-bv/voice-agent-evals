@@ -9,6 +9,7 @@ from pathlib import Path
 from .config import Settings, enable_system_trust_store
 
 DEFAULT_SCENARIOS = "scenarios"
+AGENT_CHOICES = ["scripted", "prompt", "llm"]
 
 
 def _cmd_run(args: argparse.Namespace) -> int:
@@ -16,7 +17,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
     from .evals.report import summary_markdown, write_html, write_json
 
     settings = Settings.load()
-    if args.agent == "llm" or args.caller == "llm" or args.judge:
+    if args.agent != "scripted" or args.caller == "llm" or args.judge:
         from .agent.llm import ChatClient
 
         if not ChatClient(settings.llm_base_url, settings.llm_api_key, settings.llm_model).ping():
@@ -121,7 +122,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     r = sub.add_parser("run", help="run the evaluation suite")
     r.add_argument("--scenarios", default=DEFAULT_SCENARIOS, help="scenario directory (default: ./scenarios)")
-    r.add_argument("--agent", choices=["scripted", "llm"], default="scripted", help="agent backend")
+    r.add_argument("--agent", choices=AGENT_CHOICES, default="scripted", help="agent backend")
     r.add_argument("--caller", choices=["scripted", "llm"], default="scripted", help="simulated caller")
     r.add_argument("--judge", action="store_true", help="also run the optional LLM hallucination judge")
     r.add_argument("--only", nargs="*", help="scenario ids, categories or tags to run")
@@ -138,11 +139,11 @@ def build_parser() -> argparse.ArgumentParser:
     ls.set_defaults(func=_cmd_list)
 
     c = sub.add_parser("chat", help="text chat with the agent in the terminal")
-    c.add_argument("--agent", choices=["scripted", "llm"], default="scripted")
+    c.add_argument("--agent", choices=AGENT_CHOICES, default="scripted")
     c.set_defaults(func=_cmd_chat)
 
     s = sub.add_parser("serve", help="start the local voice demo web app")
-    s.add_argument("--agent", choices=["scripted", "llm"], default="scripted")
+    s.add_argument("--agent", choices=AGENT_CHOICES, default="scripted")
     s.add_argument("--stt", choices=["whisper", "fake"], default="whisper")
     s.add_argument("--tts", choices=["auto", "piper", "sapi", "none"], default=None)
     s.add_argument("--host", default="127.0.0.1")

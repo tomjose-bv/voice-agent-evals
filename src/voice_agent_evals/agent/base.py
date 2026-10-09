@@ -14,6 +14,8 @@ class AgentTurn:
     ended: bool = False
     prompt_tokens: int = 0
     completion_tokens: int = 0
+    blocked: list[dict] = field(default_factory=list)  # tool calls refused by a guard
+    nodes: list[str] = field(default_factory=list)  # graph nodes visited (graph variant)
 
 
 class Agent(Protocol):

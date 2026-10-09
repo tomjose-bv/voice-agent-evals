@@ -12,6 +12,11 @@ def _env(name: str, default: str) -> str:
     return os.environ.get(name, default)
 
 
+def _seed(raw: str) -> int | None:
+    raw = raw.strip()
+    return int(raw) if raw else None
+
+
 @dataclass
 class Settings:
     llm_base_url: str = "http://localhost:11434/v1"
@@ -20,6 +25,7 @@ class Settings:
     caller_model: str = ""
     judge_model: str = ""
     llm_timeout_s: float = 120.0
+    llm_seed: int | None = 7
     credit_limit: float = 50.0
     stt_model: str = "tiny.en"
     tts_engine: str = "auto"
@@ -36,6 +42,7 @@ class Settings:
             caller_model=_env("VAE_CALLER_MODEL", "") or model,
             judge_model=_env("VAE_JUDGE_MODEL", "") or model,
             llm_timeout_s=float(_env("VAE_LLM_TIMEOUT_S", str(cls.llm_timeout_s))),
+            llm_seed=_seed(_env("VAE_LLM_SEED", "7")),
             credit_limit=float(_env("VAE_CREDIT_LIMIT", str(cls.credit_limit))),
             stt_model=_env("VAE_STT_MODEL", cls.stt_model),
             tts_engine=_env("VAE_TTS_ENGINE", cls.tts_engine),
