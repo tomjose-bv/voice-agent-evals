@@ -5,8 +5,8 @@ from ..config import Settings
 from .base import Agent
 
 #: Agent variants, from no model at all to a governed LLM graph.
-AGENT_KINDS = ("scripted", "prompt", "context")
-LLM_KINDS = ("prompt", "context", "llm")
+AGENT_KINDS = ("scripted", "prompt", "context", "graph")
+LLM_KINDS = ("prompt", "context", "graph", "llm")
 
 
 def make_agent(kind: str, backend: MockBackend, settings: Settings | None = None) -> Agent:
@@ -31,4 +31,8 @@ def make_agent(kind: str, backend: MockBackend, settings: Settings | None = None
         from .context_agent import ContextAgent
 
         return ContextAgent(backend, settings)
+    if kind == "graph":
+        from .graph_agent import GraphAgent
+
+        return GraphAgent(backend, settings)
     raise ValueError(f"unknown agent {kind!r} (use one of: {', '.join(AGENT_KINDS)})")
