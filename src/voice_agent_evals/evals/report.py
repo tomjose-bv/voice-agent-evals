@@ -31,6 +31,7 @@ def summary_rows(run: dict[str, Any]) -> list[tuple[str, str]]:
         ("Forbidden tool calls", str(s["forbidden_tool_calls"])),
         ("Hallucination-free conversations (rule-based)", _pct(s["hallucination_free_rate"])),
         ("Unsupported claims flagged", str(s["unsupported_claims"])),
+        ("Blocked actions (guard refusals)", str(s.get("blocked_actions", 0))),
         ("Mean caller turns", f"{s['mean_caller_turns']:.2f}"),
         ("Agent latency per turn p50 / p95", f"{_ms(lat['p50_ms'])} / {_ms(lat['p95_ms'])}"),
         ("Mean wall-clock per conversation", f"{s['mean_wall_clock_s'] * 1000:.2f} ms"),
@@ -145,7 +146,9 @@ run.results.forEach((r, i) => {
     ...tc.forbidden_called.map(x => 'forbidden tool called: ' + x), ...mt.hallucinations.map(h => `turn ${h.turn}: ${h.kind} "${h.claim}" (${h.detail})`)];
   if (r.error) issues.unshift('error: ' + r.error);
   const turns = r.turns.map(t => `<div class="turn ${t.role}"><div class="role">${esc(t.role)}${t.latency_ms != null ? ' &middot; ' + t.latency_ms.toFixed(2) + ' ms' : ''}</div>${esc(t.text)}` +
-    (t.tool_calls || []).map(c => `<div class="tool">&rarr; ${esc(c.name)}(${esc(JSON.stringify(c.args))}) ${c.ok ? '= ' + esc(JSON.stringify(c.result)) : 'ERROR ' + esc(c.error)}</div>`).join('') + `</div>`).join('');
+    (t.tool_calls || []).map(c => `<div class="tool">&rarr; ${esc(c.name)}(${esc(JSON.stringify(c.args))}) ${c.ok ? '= ' + esc(JSON.stringify(c.result)) : 'ERROR ' + esc(c.error)}</div>`).join('') +
+    (t.blocked || []).map(b => `<div class="tool fail">&#8856; BLOCKED ${esc(b.name)}(${esc(JSON.stringify(b.args))}): ${esc(b.reason)}</div>`).join('') +
+    ((t.nodes || []).length ? `<div class="tool">graph: ${t.nodes.map(esc).join(' &rarr; ')}</div>` : '') + `</div>`).join('');
   const handoff = r.handoff ? `<p><b>Handoff summary:</b></p><pre class="tool">${esc(JSON.stringify(r.handoff, null, 2))}</pre>` : '';
   dt.innerHTML = `<td colspan="9">${issues.length ? '<ul class="issues">' + issues.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '<p class="pass">All checks passed.</p>'}${turns}${handoff}
     <p class="tool">final state: ${esc(JSON.stringify(r.final_state))}</p></td>`;

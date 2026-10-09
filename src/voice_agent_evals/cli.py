@@ -52,6 +52,39 @@ def _cmd_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_compare(args: argparse.Namespace) -> int:
+    from .evals import ScenarioError, load_scenarios
+    from .evals.compare import load_holdout
+    from .evals.compare_run import run_variants, write_outputs
+
+    settings = Settings.load()
+    if args.model:
+        settings.llm_model = args.model
+    if any(a != "scripted" for a in args.agents):
+        from .agent.llm import ChatClient
+
+        if not ChatClient(settings.llm_base_url, settings.llm_api_key, settings.llm_model).ping():
+            print(f"error: no LLM endpoint reachable at {settings.llm_base_url}", file=sys.stderr)
+            return 2
+    try:
+        scenarios = load_scenarios(args.scenarios, only=args.only or None)
+    except ScenarioError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    out = Path(args.out)
+    seeds = args.seeds or [settings.llm_seed]
+    progress = Path(args.progress) if args.progress else out / "progress.log"
+    progress.parent.mkdir(parents=True, exist_ok=True)
+    runs = run_variants(scenarios, args.agents, seeds, settings, out, progress, resume=args.resume)
+    holdout = load_holdout(args.holdout)
+    paths = write_outputs(runs, holdout, out, Path(args.save_compact) if args.save_compact else None)
+    print()
+    print(paths["markdown"].read_text(encoding="utf-8"))
+    for k, v in paths.items():
+        print(f"{k}: {v}")
+    return 0
+
+
 def _cmd_validate(args: argparse.Namespace) -> int:
     from .evals import ScenarioError, load_scenarios
 
@@ -129,6 +162,19 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--out", default="results", help="output directory (default: ./results)")
     r.add_argument("--fail-under", type=float, default=None, help="exit 1 if pass rate is below this (0-1)")
     r.set_defaults(func=_cmd_run)
+
+    cmp_ = sub.add_parser("compare", help="run several agent variants on the same scenarios and compare them")
+    cmp_.add_argument("--agents", nargs="+", choices=AGENT_CHOICES, default=["scripted", "prompt", "context", "graph"])
+    cmp_.add_argument("--seeds", nargs="*", type=int, help="repeat each LLM variant once per seed")
+    cmp_.add_argument("--model", default=None, help="override VAE_LLM_MODEL")
+    cmp_.add_argument("--scenarios", default=DEFAULT_SCENARIOS)
+    cmp_.add_argument("--only", nargs="*", help="scenario ids, categories or tags to run")
+    cmp_.add_argument("--holdout", default="scenarios/holdout.txt", help="held-out scenario list (reported separately)")
+    cmp_.add_argument("--out", default="results/compare", help="output directory")
+    cmp_.add_argument("--progress", default=None, help="progress log file (default: <out>/progress.log)")
+    cmp_.add_argument("--resume", action="store_true", help="reuse runs already saved in <out>/runs/")
+    cmp_.add_argument("--save-compact", default=None, help="also write small per-run JSON + compare.md here")
+    cmp_.set_defaults(func=_cmd_compare)
 
     v = sub.add_parser("validate", help="validate scenario files against the schema and mock backend")
     v.add_argument("--scenarios", default=DEFAULT_SCENARIOS)
