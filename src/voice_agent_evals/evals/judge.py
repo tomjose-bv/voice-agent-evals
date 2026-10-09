@@ -39,8 +39,10 @@ def llm_judge(turns: list[dict[str, Any]], client: ChatClient) -> dict[str, Any]
     data = client.chat([{"role": "user", "content": JUDGE_PROMPT.format(conversation=render_conversation(turns))}])
     content = (((data.get("choices") or [{}])[0].get("message") or {}).get("content") or "").strip()
     m = re.search(r"\{.*\}", content, re.DOTALL)
+    if not m:
+        return {"ok": False, "error": "judge returned no JSON", "raw": content[:500]}
     try:
-        parsed = json.loads(m.group(0)) if m else {}
+        parsed = json.loads(m.group(0))
         claims = parsed.get("unsupported_claims", [])
         if not isinstance(claims, list):
             raise ValueError
