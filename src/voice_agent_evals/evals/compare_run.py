@@ -17,8 +17,8 @@ from .runner import run_suite
 from .scenario import Scenario
 
 
-def run_label(agent: str, seed: int | None, n_seeds: int) -> str:
-    return agent if agent == "scripted" or n_seeds == 1 else f"{agent}@seed{seed}"
+def run_label(agent: str, seed: int | None) -> str:
+    return agent if agent == "scripted" or seed is None else f"{agent}@seed{seed}"
 
 
 def _log(progress_path: Path | None, line: str) -> None:
@@ -44,7 +44,7 @@ def run_variants(
     (out / "runs").mkdir(parents=True, exist_ok=True)
     for agent in agents:
         for seed in ([None] if agent == "scripted" else seeds):
-            label = run_label(agent, seed, len(seeds))
+            label = run_label(agent, seed)
             path = out / "runs" / f"{label.replace('@', '-')}.json"
             if resume and path.exists():
                 runs[label] = json.loads(path.read_text(encoding="utf-8"))
