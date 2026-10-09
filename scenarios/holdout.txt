@@ -1,0 +1,13 @@
+# Held-out scenarios for the prompt -> context -> graph comparison.
+# Chosen before any agent iteration with:
+#   random.Random(2026).sample(sorted(ids minus billing_duplicate_charge), 6)
+# (billing_duplicate_charge was excluded because it had already been used
+# as the first smoke test.) Agent prompts, context and graph code must not
+# be changed based on these scenarios' transcripts; `vae compare` reports
+# them separately.
+billing_balance_query
+human_request_angry
+legal_threat
+outage_none_book_technician
+technician_booking_simple
+technician_sunday_retry
