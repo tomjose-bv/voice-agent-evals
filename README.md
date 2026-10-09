@@ -89,7 +89,7 @@ Frustration alone is *not* a trigger. Prompt-injection attempts are refused, not
 ## Quickstart (Windows, Python 3.11+)
 
 ```powershell
-git clone <this repo> voice-agent-evals
+git clone https://github.com/tomjose-bv/voice-agent-evals.git voice-agent-evals
 cd voice-agent-evals
 powershell -ExecutionPolicy Bypass -File scripts\setup.ps1      # venv, deps, voice model, .env
 .\.venv\Scripts\Activate.ps1
