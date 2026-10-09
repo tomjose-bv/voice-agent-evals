@@ -16,3 +16,6 @@ recordings/
 htmlcov/
 build/
 dist/
+
+# Local list of private terms that must never appear in the repo
+.employer-terms
