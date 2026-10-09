@@ -9,7 +9,7 @@ from pathlib import Path
 from .config import Settings, enable_system_trust_store
 
 DEFAULT_SCENARIOS = "scenarios"
-AGENT_CHOICES = ["scripted", "prompt", "llm"]
+AGENT_CHOICES = ["scripted", "prompt", "context", "llm"]
 
 
 def _cmd_run(args: argparse.Namespace) -> int:
