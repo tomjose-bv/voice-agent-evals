@@ -1,0 +1,26 @@
+id: technician_by_email
+title: Verify by email and book an explicit date
+category: technician
+persona:
+  name: Priya Shah
+  description: Prefers to give her email rather than her phone number.
+goal: Book a technician on 10 March.
+caller_facts:
+  email: priya.shah@example.com
+  preferred_date: 10 March
+ground_truth:
+  account_id: ACC-1001
+caller_script:
+  - Hello, I need to book a home visit from a technician.
+  - You can use my email, priya.shah@example.com.
+  - The 10th of March would be ideal.
+expected:
+  escalation: false
+  tool_calls:
+    - name: lookup_account
+      args: {email: priya.shah@example.com}
+    - name: book_technician
+      args: {account_id: ACC-1001, date: "2026-03-10"}
+  end_state:
+    bookings: [{account_id: ACC-1001, date: "2026-03-10"}]
+tags: [identity]

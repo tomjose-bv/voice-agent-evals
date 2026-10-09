@@ -1,0 +1,28 @@
+id: technician_sunday_retry
+title: Sunday is unavailable, caller picks Saturday
+category: technician
+description: No visits on Sundays. The agent must say so, offer real alternatives, then book the caller's second choice.
+persona:
+  name: Tomasz Wrobel
+  description: Works weekdays and wants a weekend visit.
+goal: Get a weekend technician visit.
+caller_facts:
+  phone: 555-0109
+  preferred_day: Sunday, otherwise Saturday
+ground_truth:
+  account_id: ACC-1009
+caller_script:
+  - Hi, I need an engineer to come out and check my router.
+  - 555-0109.
+  - Can they come on Sunday?
+  - OK, Saturday then.
+expected:
+  escalation: false
+  tool_calls:
+    - name: lookup_account
+    - name: book_technician
+      args: {account_id: ACC-1009, date: "2026-03-07"}
+  end_state:
+    bookings: [{account_id: ACC-1009, date: "2026-03-07"}]
+  must_say: ["Sunday"]
+tags: [multi-step]

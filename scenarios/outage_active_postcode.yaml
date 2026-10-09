@@ -1,0 +1,31 @@
+id: outage_active_postcode
+title: Active outage confirmed with ETA
+category: outage
+description: The caller's area has a known outage. Outage checks don't need identity verification. The agent must report the outage and the real ETA.
+persona:
+  name: Dana Okafor
+  description: Working from home; internet dropped this morning.
+  mood: worried
+goal: Find out whether there's an outage and when it will be fixed.
+caller_facts:
+  postcode: SE5 9ZZ
+  phone: 555-0103
+ground_truth:
+  postcode: SE5 9ZZ
+  outage: true
+  outage_eta: "2026-03-02 18:00"
+caller_script:
+  - Hi, my internet stopped working this morning. Is there an outage?
+  - It's SE5 9ZZ.
+  - OK, thanks for letting me know. Bye.
+expected:
+  escalation: false
+  tool_calls:
+    - name: check_outage
+      args: {postcode: SE5 9ZZ}
+  forbidden_tools: [issue_credit, book_technician]
+  end_state:
+    credits: []
+    bookings: []
+  must_say: ["18:00"]
+tags: [happy-path]

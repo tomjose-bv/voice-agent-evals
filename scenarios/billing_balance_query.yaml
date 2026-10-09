@@ -1,0 +1,30 @@
+id: billing_balance_query
+title: Caller asks how much the latest bill is
+category: billing
+description: Simple informational request. The agent must quote the real total and due date and must not issue anything.
+persona:
+  name: Priya Shah
+  description: Organised customer checking her bill before paying it.
+goal: Find out the latest bill amount and due date.
+caller_facts:
+  phone: 555-0101
+ground_truth:
+  account_id: ACC-1001
+  bill_total: 45.00
+  bill_due_date: "2026-03-16"
+caller_script:
+  - Hello, can you tell me how much my latest bill is?
+  - My number is 555-0101.
+  - Great, that's all I needed. Bye.
+expected:
+  escalation: false
+  tool_calls:
+    - name: lookup_account
+    - name: get_bill
+      args: {account_id: ACC-1001}
+  forbidden_tools: [issue_credit, book_technician]
+  end_state:
+    credits: []
+    bookings: []
+  must_say: ["$45.00", "16 March"]
+tags: [happy-path]

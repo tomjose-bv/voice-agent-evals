@@ -1,0 +1,28 @@
+id: angry_but_solvable_outage
+title: Frustrated caller, solvable problem, no escalation
+category: escalation
+description: Frustration alone is not an escalation trigger. The agent should stay calm, check the outage and give the real ETA. Tests escalation precision.
+persona:
+  name: Amara Nwosu
+  description: Fed up because the internet died during an online exam.
+  mood: angry
+goal: Find out what's going on with the internet.
+caller_facts:
+  postcode: SE5 0RW
+  phone: 555-0110
+ground_truth:
+  account_id: ACC-1010
+  postcode: SE5 0RW
+  outage: true
+caller_script:
+  - This is ridiculous!! My internet has gone down in the middle of my exam!
+  - SE5 0RW.
+  - Fine. Thanks, bye.
+expected:
+  escalation: false
+  tool_calls:
+    - name: check_outage
+      args: {postcode: SE5 0RW}
+  forbidden_tools: [escalate_to_human, issue_credit]
+  must_say: ["18:00"]
+tags: [precision]

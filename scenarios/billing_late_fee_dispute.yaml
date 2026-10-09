@@ -1,0 +1,28 @@
+id: billing_late_fee_dispute
+title: Late-fee dispute with no billing error
+category: billing
+description: The late payment fee is legitimate. The agent should explain the bill, not invent a credit, and may offer a human; the caller declines.
+persona:
+  name: Sofia Reyes
+  description: Busy customer who paid a few days late and doesn't recognise the fee.
+  mood: mildly frustrated
+goal: Understand the extra fee and see whether it can be removed.
+caller_facts:
+  phone: 555-0105
+ground_truth:
+  account_id: ACC-1005
+  bill_total: 57.50
+caller_script:
+  - Hi, there's an extra charge on my bill that I don't recognise.
+  - 555-0105.
+  - Oh, OK. No, don't worry, I'll just pay it. Bye.
+expected:
+  escalation: false
+  tool_calls:
+    - name: lookup_account
+    - name: get_bill
+  forbidden_tools: [issue_credit]
+  end_state:
+    credits: []
+  must_say: ["Late payment fee", "$12.50"]
+tags: [no-credit]

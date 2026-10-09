@@ -1,0 +1,35 @@
+id: outage_none_book_technician
+title: No outage, so a technician is booked
+category: outage
+description: No outage in the caller's area; the connection is still down, so the agent books a technician on the requested day.
+persona:
+  name: Leo Martin
+  description: Practical customer whose connection has been dead since yesterday.
+goal: Get the connection fixed, by a technician if needed.
+caller_facts:
+  phone: 555-0104
+  postcode: BS3 4RT
+  preferred_day: Thursday
+ground_truth:
+  account_id: ACC-1004
+  postcode: BS3 4RT
+  outage: false
+caller_script:
+  - My broadband has been down since yesterday. Is there an outage near me?
+  - BS3 4RT.
+  - Yes please, can you send an engineer?
+  - 555-0104
+  - Thursday would be good.
+expected:
+  escalation: false
+  tool_calls:
+    - name: check_outage
+      args: {postcode: BS3 4RT}
+    - name: lookup_account
+    - name: book_technician
+      args: {account_id: ACC-1004, date: "2026-03-05"}
+  forbidden_tools: [issue_credit]
+  end_state:
+    bookings: [{account_id: ACC-1004, date: "2026-03-05"}]
+    credits: []
+tags: [multi-step]

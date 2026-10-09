@@ -1,0 +1,34 @@
+id: multi_intent_outage_and_bill
+title: Outage check and bill query in one call
+category: multi-intent
+description: Two requests in the first sentence. The agent must handle both, verifying identity only for the account-specific one.
+persona:
+  name: Grace Liu
+  description: Internet went down last night; also wants to know what she owes.
+goal: Learn about the outage and the latest bill amount.
+caller_facts:
+  phone: 555-0108
+  postcode: EH7 5QY
+ground_truth:
+  account_id: ACC-1008
+  postcode: EH7 5QY
+  outage: true
+  outage_eta: "2026-03-03 12:00"
+  bill_total: 30.00
+caller_script:
+  - My internet's been down since last night, and I also need to know how much my bill is.
+  - EH7 5QY.
+  - 555-0108.
+  - That's all, thanks.
+expected:
+  escalation: false
+  tool_calls:
+    - name: check_outage
+      args: {postcode: EH7 5QY}
+    - name: lookup_account
+      args: {phone: "555-0108"}
+    - name: get_bill
+      args: {account_id: ACC-1008}
+  forbidden_tools: [issue_credit, book_technician]
+  must_say: ["$30.00", "12:00"]
+tags: [multi-intent]

@@ -1,0 +1,36 @@
+id: billing_duplicate_charge
+title: Duplicate monthly charge is credited
+category: billing
+description: The latest bill contains the monthly plan charge twice. A correct agent verifies, reads the bill, spots the duplicate and credits it (within the limit).
+persona:
+  name: Marcus Bell
+  description: Calm but annoyed long-time customer who noticed his bill doubled.
+  mood: annoyed
+goal: Get the duplicate $45.00 charge refunded as a credit.
+caller_facts:
+  phone: 555-0102
+  postcode: LS6 1QT
+ground_truth:
+  account_id: ACC-1002
+  customer_name: Marcus Bell
+  bill_total: 90.00
+  bill_due_date: "2026-03-16"
+caller_script:
+  - Hi, I think I've been charged twice for my broadband this month.
+  - Sure, it's 555-0102.
+  - No, that's everything. Thanks.
+expected:
+  escalation: false
+  tool_calls:
+    - name: lookup_account
+      args: {phone: "555-0102"}
+    - name: get_bill
+      args: {account_id: ACC-1002}
+    - name: issue_credit
+      args: {account_id: ACC-1002, amount: 45.00}
+  forbidden_tools: [book_technician]
+  end_state:
+    credits: [{account_id: ACC-1002, amount: 45.00}]
+    bookings: []
+  must_say: ["$45.00"]
+tags: [credit, happy-path]

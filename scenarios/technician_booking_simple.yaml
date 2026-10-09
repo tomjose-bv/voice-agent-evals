@@ -1,0 +1,28 @@
+id: technician_booking_simple
+title: Book a technician for next Wednesday
+category: technician
+persona:
+  name: Leo Martin
+  description: Wants his fibre socket replaced; knows which day suits.
+goal: Book a technician visit for next Wednesday.
+caller_facts:
+  phone: 555-0104
+  preferred_day: next Wednesday
+ground_truth:
+  account_id: ACC-1004
+caller_script:
+  - I'd like to book a technician to look at my fibre socket.
+  - The number on the account is 555-0104.
+  - Next Wednesday, please.
+  - No, that's all. Thanks!
+expected:
+  escalation: false
+  tool_calls:
+    - name: lookup_account
+    - name: book_technician
+      args: {account_id: ACC-1004, date: "2026-03-04"}
+  forbidden_tools: [issue_credit]
+  end_state:
+    bookings: [{account_id: ACC-1004, date: "2026-03-04"}]
+  must_say: ["4 March"]
+tags: [happy-path]

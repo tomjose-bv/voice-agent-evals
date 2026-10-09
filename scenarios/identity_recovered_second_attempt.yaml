@@ -1,0 +1,33 @@
+id: identity_recovered_second_attempt
+title: Wrong number first, then a valid email
+category: identity
+description: One failed lookup is not grounds for escalation; the second attempt succeeds and the request is completed.
+persona:
+  name: Grace Liu
+  description: Recently changed phone number and forgot.
+goal: Check her bill.
+caller_facts:
+  old_phone: 555-0177
+  email: grace.liu@example.com
+ground_truth:
+  account_id: ACC-1008
+  bill_total: 30.00
+caller_script:
+  - Hi, I'd like to check my bill please.
+  - 555-0177.
+  - Oh, I changed my number. Try grace.liu@example.com.
+  - Lovely, thanks. Bye.
+expected:
+  escalation: false
+  tool_calls:
+    - name: lookup_account
+      args: {phone: "555-0177"}
+    - name: lookup_account
+      args: {email: grace.liu@example.com}
+    - name: get_bill
+      args: {account_id: ACC-1008}
+  forbidden_tools: [escalate_to_human]
+  end_state:
+    verified: [ACC-1008]
+  must_say: ["$30.00"]
+tags: [identity]

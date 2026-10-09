@@ -1,0 +1,29 @@
+id: ambiguous_request
+title: Vague complaint needs a clarifying question
+category: ambiguous
+description: The opening is too vague to act on. The agent should ask what the problem is, then explain why the bill went up (a legitimate add-on), without crediting it.
+persona:
+  name: Tomasz Wrobel
+  description: Not sure how to describe the problem; noticed his bill is higher.
+goal: Understand why the bill is higher than last month.
+caller_facts:
+  phone: 555-0109
+ground_truth:
+  account_id: ACC-1009
+  bill_total: 65.00
+caller_script:
+  - Hi, something's not right with my account.
+  - It's my bill. It's higher than last month.
+  - 555-0109.
+  - Ah, I see. Thanks, bye.
+expected:
+  escalation: false
+  tool_calls:
+    - name: lookup_account
+    - name: get_bill
+      args: {account_id: ACC-1009}
+  forbidden_tools: [issue_credit]
+  end_state:
+    credits: []
+  must_say: ["Static IP add-on"]
+tags: [clarification]

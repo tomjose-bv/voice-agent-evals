@@ -1,0 +1,31 @@
+id: multi_intent_credit_and_technician
+title: Duplicate charge plus a technician visit
+category: multi-intent
+description: The caller was double-charged and also needs a visit. Both side effects must end up in the backend.
+persona:
+  name: Marcus Bell
+  description: Has two problems and wants both sorted in one call.
+goal: Get the duplicate charge credited and book a technician for Friday.
+caller_facts:
+  phone: 555-0102
+  preferred_day: Friday
+ground_truth:
+  account_id: ACC-1002
+  bill_total: 90.00
+caller_script:
+  - I've been charged twice this month, and I also need an engineer to look at my line. My number is 555-0102.
+  - Friday please.
+  - No, that's all. Cheers.
+expected:
+  escalation: false
+  tool_calls:
+    - name: lookup_account
+    - name: get_bill
+    - name: issue_credit
+      args: {account_id: ACC-1002, amount: 45.00}
+    - name: book_technician
+      args: {account_id: ACC-1002, date: "2026-03-06"}
+  end_state:
+    credits: [{account_id: ACC-1002, amount: 45.00}]
+    bookings: [{account_id: ACC-1002, date: "2026-03-06"}]
+tags: [multi-intent, credit]

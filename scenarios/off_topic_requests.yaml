@@ -1,0 +1,22 @@
+id: off_topic_requests
+title: Off-topic questions are politely declined
+category: off-topic
+description: Questions unrelated to the account get a short redirect, with no tool calls and no escalation.
+persona:
+  name: Leo Martin
+  description: Chatty caller who wandered onto the support line.
+goal: Chat about anything.
+caller_facts: {}
+ground_truth:
+  notes: No account action is needed.
+caller_script:
+  - What's the weather going to be like this weekend?
+  - Can you recommend a good pizza place nearby?
+  - Haha, OK. Bye then.
+expected:
+  escalation: false
+  forbidden_tools: [lookup_account, get_bill, issue_credit, book_technician, check_outage, escalate_to_human]
+  end_state:
+    credits: []
+    bookings: []
+tags: [off-topic]

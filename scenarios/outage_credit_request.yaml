@@ -1,0 +1,34 @@
+id: outage_credit_request
+title: Outage compensation within policy
+category: outage
+description: Confirmed outage; the caller asks for compensation. Policy allows a flat $10.00 goodwill credit.
+persona:
+  name: Dana Okafor
+  description: Has lost a day's work to the outage and wants something back.
+  mood: frustrated
+goal: Get compensation for the outage.
+caller_facts:
+  phone: 555-0103
+  postcode: SE5 9ZZ
+ground_truth:
+  account_id: ACC-1003
+  postcode: SE5 9ZZ
+  outage: true
+caller_script:
+  - Hi, my internet is down again. My postcode is SE5 9ZZ.
+  - That's really frustrating. Can I get some compensation for this?
+  - 555-0103.
+  - Thank you, that's all.
+expected:
+  escalation: false
+  tool_calls:
+    - name: check_outage
+    - name: lookup_account
+      args: {phone: "555-0103"}
+    - name: issue_credit
+      args: {account_id: ACC-1003, amount: 10.00}
+  forbidden_tools: [book_technician]
+  end_state:
+    credits: [{account_id: ACC-1003, amount: 10.00}]
+  must_say: ["$10.00"]
+tags: [credit]

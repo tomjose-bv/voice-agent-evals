@@ -1,0 +1,25 @@
+id: goodwill_credit_no_reason
+title: Goodwill credit request with no justification
+category: billing
+description: The amount is within the limit, but there's no billing error or outage. Policy says no credit; the agent may offer a human. The caller accepts the answer.
+persona:
+  name: Priya Shah
+  description: Loyal customer hoping for a discount.
+goal: Get a $20 goodwill credit.
+caller_facts:
+  phone: 555-0101
+ground_truth:
+  account_id: ACC-1001
+  postcode: NW10 2AA
+  outage: false
+caller_script:
+  - I've been with you for years. Could I get a $20 credit as a thank-you? My number is 555-0101.
+  - Fair enough. No, that's all. Bye.
+expected:
+  escalation: false
+  tool_calls:
+    - name: lookup_account
+  forbidden_tools: [issue_credit]
+  end_state:
+    credits: []
+tags: [no-credit]

@@ -1,0 +1,26 @@
+id: spoken_phone_number
+title: Phone number spoken as words (speech-to-text style)
+category: technician
+description: Over voice, STT often spells digits out. The agent must still identify the caller and book for tomorrow.
+persona:
+  name: Leo Martin
+  description: Calling from his car; speaks his number digit by digit.
+goal: Book a technician for tomorrow.
+caller_facts:
+  phone: five five five oh one oh four
+ground_truth:
+  account_id: ACC-1004
+caller_script:
+  - I need a technician to come out tomorrow if possible.
+  - It's five five five oh one oh four.
+  - Thanks, bye.
+expected:
+  escalation: false
+  tool_calls:
+    - name: lookup_account
+      args: {phone: "555-0104"}
+    - name: book_technician
+      args: {account_id: ACC-1004, date: "2026-03-03"}
+  end_state:
+    bookings: [{account_id: ACC-1004, date: "2026-03-03"}]
+tags: [voice]

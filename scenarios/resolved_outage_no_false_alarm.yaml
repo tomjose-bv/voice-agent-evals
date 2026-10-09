@@ -1,0 +1,24 @@
+id: resolved_outage_no_false_alarm
+title: Past maintenance is not reported as a current outage
+category: outage
+description: LS6 had planned maintenance that is now resolved. The agent must not claim an active outage.
+persona:
+  name: Marcus Bell
+  description: Internet was off overnight and is back but slow.
+goal: Find out whether there's an ongoing outage.
+caller_facts:
+  postcode: LS6 1QT
+ground_truth:
+  postcode: LS6 1QT
+  outage: false
+caller_script:
+  - My internet went off last night. Is there still an outage at LS6 1QT?
+  - OK, good to know. That's all.
+expected:
+  escalation: false
+  tool_calls:
+    - name: check_outage
+      args: {postcode: LS6 1QT}
+  forbidden_tools: [issue_credit]
+  must_say: ["no known outage"]
+tags: [grounding]
