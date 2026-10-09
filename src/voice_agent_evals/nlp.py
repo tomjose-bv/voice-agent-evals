@@ -42,7 +42,7 @@ DAY_MONTH_RE = re.compile(
 MONTH_DAY_RE = re.compile(
     rf"\b({_MONTH_ALT})\.?\s+(\d{{1,2}})(?:st|nd|rd|th)?\b(?:,?\s+(\d{{4}}))?", re.IGNORECASE
 )
-PHONE_RE = re.compile(r"(?<![\d.$])(?:\+?1[\s-]?)?(\d{3})[\s.-]?(\d{4})(?![\d.])")
+PHONE_RE = re.compile(r"(?<![\d$])(?<!\d\.)(?:\+?1[\s-]?)?(\d{3})[\s.-]?(\d{4})(?!\d|\.\d)")
 EMAIL_RE = re.compile(r"\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b")
 
 _DIGIT_WORDS = {

@@ -91,6 +91,8 @@ class ScriptedAgent:
         self.awaiting: str | None = None
         self.offered_transfer = False
         self.last_outage: dict[str, Any] | None = None
+        self.known_postcode: str | None = None
+        self.known_dates: list[date] = []
         self.ended = False
         self.escalated = False
         self.handoff: dict[str, Any] | None = None
@@ -185,8 +187,16 @@ class ScriptedAgent:
                 f"{fmt_money(self.backend.credit_limit)} limit"
             )
 
+        # Remember details mentioned before we could act on them
+        # (e.g. "tomorrow" said before identity verification).
         postcode = normalise_postcode(text)
-        dates = extract_dates(text, self.today, relative=True)
+        if postcode:
+            self.known_postcode = postcode
+        postcode = postcode or self.known_postcode
+        new_dates = extract_dates(text, self.today, relative=True)
+        if new_dates:
+            self.known_dates = new_dates
+        dates = new_dates or self.known_dates
         if postcode and self.awaiting == "postcode":
             consumed = True
         if dates and self.awaiting == "date":
@@ -358,6 +368,7 @@ class ScriptedAgent:
             "book_technician",
             {"account_id": self.account["account_id"], "date": dates[0].isoformat()},  # type: ignore[index]
         )
+        self.known_dates = []
         if rec.ok and rec.result:
             self.awaiting = None
             d = date.fromisoformat(rec.result["date"])
