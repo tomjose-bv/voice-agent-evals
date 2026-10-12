@@ -25,6 +25,7 @@ class Settings:
     caller_model: str = ""
     judge_model: str = ""
     llm_timeout_s: float = 120.0
+    llm_max_tokens: int = 400
     llm_seed: int | None = 7
     credit_limit: float = 50.0
     stt_model: str = "tiny.en"
@@ -42,6 +43,7 @@ class Settings:
             caller_model=_env("VAE_CALLER_MODEL", "") or model,
             judge_model=_env("VAE_JUDGE_MODEL", "") or model,
             llm_timeout_s=float(_env("VAE_LLM_TIMEOUT_S", str(cls.llm_timeout_s))),
+            llm_max_tokens=int(_env("VAE_LLM_MAX_TOKENS", str(cls.llm_max_tokens))),
             llm_seed=_seed(_env("VAE_LLM_SEED", "7")),
             credit_limit=float(_env("VAE_CREDIT_LIMIT", str(cls.credit_limit))),
             stt_model=_env("VAE_STT_MODEL", cls.stt_model),

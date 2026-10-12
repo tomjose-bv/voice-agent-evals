@@ -36,10 +36,12 @@ class ChatClient:
     """Minimal OpenAI-compatible client (no SDK dependency)."""
 
     def __init__(self, base_url: str, api_key: str, model: str, timeout_s: float = 120.0,
-                 seed: int | None = None) -> None:
+                 seed: int | None = None, max_tokens: int | None = 400) -> None:
         self.base_url = base_url.rstrip("/")
         self.model = model
         self.seed = seed
+        # Cap reply length: small local models can otherwise generate until the client times out.
+        self.max_tokens = max_tokens
         self._http = httpx.Client(timeout=timeout_s, headers={"Authorization": f"Bearer {api_key}"})
 
     def chat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None = None,
@@ -47,6 +49,8 @@ class ChatClient:
         payload: dict[str, Any] = {"model": self.model, "messages": messages, "temperature": temperature}
         if self.seed is not None:
             payload["seed"] = self.seed
+        if self.max_tokens:
+            payload["max_tokens"] = self.max_tokens
         if tools:
             payload["tools"] = tools
             payload["tool_choice"] = "auto"
@@ -105,7 +109,7 @@ class LLMAgent:
         self.settings = settings
         self.client = client or ChatClient(
             settings.llm_base_url, settings.llm_api_key, settings.llm_model, settings.llm_timeout_s,
-            seed=settings.llm_seed,
+            seed=settings.llm_seed, max_tokens=settings.llm_max_tokens,
         )
         self.tools = ToolExecutor(backend)
         self.system_prompt = build_system_prompt(backend.today, backend.credit_limit, OUTAGE_CREDIT_AMOUNT)
