@@ -266,6 +266,13 @@ temperature 0. Clean `context` timing is **TBD — measure by** re-running
   baseline. Several scenario types (multi-intent requests, spoken phone numbers,
   goodwill credits, AI-disclosure questions) failed for every LLM variant.
 
+**Grounding variant (`graph+grounding`).** The `graph` agent plus a pre-send grounding check in its
+response step: amounts, dates, outage status, completed actions and references in each draft reply
+must appear in a tool result or the caller's words. If they don't, the model rewrites the reply once
+(with the step's tools still available), and if it still fails, the unsupported sentences are dropped.
+The plain `graph` variant is unchanged, so the runs above stay reproducible. Results:
+**TBD — measure by** `vae compare --agents scripted prompt context graph graph+grounding --seeds 7 11 13 --resume`.
+
 **Caveats.** This is a single run per variant with one small model and 25
 scenarios, so a difference of one or two scenarios is within noise.
 Run-to-run variance is **TBD — measure by** `vae compare --agents prompt context graph --seeds 7 11 13`.
