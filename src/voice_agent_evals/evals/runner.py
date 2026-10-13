@@ -231,7 +231,9 @@ def run_suite(
     settings: Settings | None = None,
     judge: bool = False,
     progress: Callable[[dict[str, Any]], None] | None = None,
+    cached: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
+    """Run every scenario. ``cached`` maps scenario id -> an earlier result to reuse (resume)."""
     settings = settings or Settings.load()
     judge_client = (
         ChatClient(settings.llm_base_url, settings.llm_api_key, settings.judge_model, settings.llm_timeout_s)
@@ -239,7 +241,10 @@ def run_suite(
     )
     results = []
     for s in scenarios:
-        r = run_scenario(s, agent_kind, caller_kind, settings, judge_client)
+        if cached and s.id in cached:
+            r = cached[s.id]
+        else:
+            r = run_scenario(s, agent_kind, caller_kind, settings, judge_client)
         results.append(r)
         if progress:
             progress(r)

@@ -75,7 +75,10 @@ def _cmd_compare(args: argparse.Namespace) -> int:
     seeds = args.seeds or [settings.llm_seed]
     progress = Path(args.progress) if args.progress else out / "progress.log"
     progress.parent.mkdir(parents=True, exist_ok=True)
-    runs = run_variants(scenarios, args.agents, seeds, settings, out, progress, resume=args.resume)
+    from .evals.keep_awake import keep_awake
+
+    with keep_awake():
+        runs = run_variants(scenarios, args.agents, seeds, settings, out, progress, resume=args.resume)
     holdout = load_holdout(args.holdout)
     paths = write_outputs(runs, holdout, out, Path(args.save_compact) if args.save_compact else None)
     print()

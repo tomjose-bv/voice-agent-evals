@@ -29,6 +29,16 @@ def _log(progress_path: Path | None, line: str) -> None:
             fh.write(stamped + "\n")
 
 
+def _load_checkpoints(folder: Path) -> dict[str, dict[str, Any]]:
+    """Per-scenario results saved by an interrupted run. Errored results are skipped so they rerun."""
+    cached: dict[str, dict[str, Any]] = {}
+    for f in sorted(folder.glob("*.json")) if folder.is_dir() else []:
+        r = json.loads(f.read_text(encoding="utf-8"))
+        if not r.get("error"):
+            cached[r["scenario_id"]] = r
+    return cached
+
+
 def run_variants(
     scenarios: list[Scenario],
     agents: list[str],
@@ -51,18 +61,24 @@ def run_variants(
                 _log(progress_path, f"{label}: loaded saved run")
                 continue
             s = settings if seed is None else dataclasses.replace(settings, llm_seed=seed)
-            _log(progress_path, f"{label}: start ({len(scenarios)} scenarios)")
+            partial = out / "runs" / f"{label.replace('@', '-')}.partial"
+            cached = _load_checkpoints(partial) if resume else {}
+            partial.mkdir(parents=True, exist_ok=True)
+            _log(progress_path, f"{label}: start ({len(scenarios)} scenarios"
+                                + (f", {len(cached)} reused from an interrupted run)" if cached else ")"))
             t0 = time.perf_counter()
             done = [0]
 
-            def progress(r: dict[str, Any], label: str = label) -> None:
+            def progress(r: dict[str, Any], label: str = label, partial: Path = partial) -> None:
                 done[0] += 1
+                if not r["error"]:
+                    (partial / f"{r['scenario_id']}.json").write_text(json.dumps(r, default=str), encoding="utf-8")
                 c = r["metrics"]["cost"]
                 _log(progress_path, f"{label}: [{done[0]}/{len(scenarios)}] {'PASS' if r['passed'] else 'FAIL'} "
                                     f"{r['scenario_id']} ({c['wall_clock_s']:.1f} s, {c['total_tokens']} tok)"
                                     + (f" ERROR {r['error']}" if r["error"] else ""))
 
-            run = run_suite(scenarios, agent, "scripted", s, progress=progress)
+            run = run_suite(scenarios, agent, "scripted", s, progress=progress, cached=cached)
             write_json(run, path)
             runs[label] = run
             sm = run["summary"]
