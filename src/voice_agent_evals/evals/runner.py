@@ -67,6 +67,7 @@ def run_scenario(
                 "tool_calls": [c.to_dict() for c in reply.tool_calls],
                 "blocked": list(reply.blocked),
                 "nodes": list(reply.nodes),
+                "grounding": list(reply.grounding),
                 "latency_ms": round(dt_ms, 3),
             })
             agent_text = reply.text
@@ -119,6 +120,8 @@ def run_scenario(
             "cost": M.cost_summary(p_tok, c_tok, wall),
             "blocked_actions": len(getattr(agent, "blocked", [])),
             "forced_actions": len(getattr(agent, "forced", [])),
+            "grounding_revisions": len(getattr(agent, "grounding", [])),
+            "grounding_fallbacks": sum(1 for g in getattr(agent, "grounding", []) if g.get("action") == "fallback"),
             "caller_tokens": {"prompt": caller_tokens[0], "completion": caller_tokens[1]},
         },
     }
@@ -161,6 +164,8 @@ def aggregate(results: list[dict[str, Any]]) -> dict[str, Any]:
         "blocked_actions": sum(r["metrics"].get("blocked_actions", 0) for r in results),
         "conversations_with_blocked_actions": sum(1 for r in results if r["metrics"].get("blocked_actions")),
         "forced_actions": sum(r["metrics"].get("forced_actions", 0) for r in results),
+        "grounding_revisions": sum(r["metrics"].get("grounding_revisions", 0) for r in results),
+        "grounding_fallbacks": sum(r["metrics"].get("grounding_fallbacks", 0) for r in results),
         "mean_tokens_per_conversation": sum(c["total_tokens"] for c in costs) / n,
         "api_cost_usd": 0.0,
         "errors": sum(1 for r in results if r["error"]),

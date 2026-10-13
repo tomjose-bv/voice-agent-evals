@@ -148,6 +148,7 @@ run.results.forEach((r, i) => {
   const turns = r.turns.map(t => `<div class="turn ${t.role}"><div class="role">${esc(t.role)}${t.latency_ms != null ? ' &middot; ' + t.latency_ms.toFixed(2) + ' ms' : ''}</div>${esc(t.text)}` +
     (t.tool_calls || []).map(c => `<div class="tool">&rarr; ${esc(c.name)}(${esc(JSON.stringify(c.args))}) ${c.ok ? '= ' + esc(JSON.stringify(c.result)) : 'ERROR ' + esc(c.error)}</div>`).join('') +
     (t.blocked || []).map(b => `<div class="tool fail">&#8856; BLOCKED ${esc(b.name)}(${esc(JSON.stringify(b.args))}): ${esc(b.reason)}</div>`).join('') +
+    (t.grounding || []).map(g => `<div class="tool fail">GROUNDING ${esc(g.action)}: draft "${esc(g.draft)}" &mdash; ${g.violations.map(v => esc(v.kind + ' ' + v.claim)).join('; ')}</div>`).join('') +
     ((t.nodes || []).length ? `<div class="tool">graph: ${t.nodes.map(esc).join(' &rarr; ')}</div>` : '') + `</div>`).join('');
   const handoff = r.handoff ? `<p><b>Handoff summary:</b></p><pre class="tool">${esc(JSON.stringify(r.handoff, null, 2))}</pre>` : '';
   dt.innerHTML = `<td colspan="9">${issues.length ? '<ul class="issues">' + issues.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '<p class="pass">All checks passed.</p>'}${turns}${handoff}

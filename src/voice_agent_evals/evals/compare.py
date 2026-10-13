@@ -43,6 +43,8 @@ METRICS: list[tuple[str, Any]] = [
     ("Blocked actions (convs affected)",
      lambda s: f"{s.get('blocked_actions', 0)} ({s.get('conversations_with_blocked_actions', 0)})"),
     ("Escalations forced by the graph", lambda s: str(s.get("forced_actions", 0))),
+    ("Drafts rejected by grounding check (fallbacks)",
+     lambda s: f"{s.get('grounding_revisions', 0)} ({s.get('grounding_fallbacks', 0)})"),
     ("Mean caller turns", lambda s: f"{s['mean_caller_turns']:.2f}"),
     ("Latency per turn p50 / p95",
      lambda s: f"{_secs(s['latency']['p50_ms'])} / {_secs(s['latency']['p95_ms'])}"),
@@ -136,6 +138,9 @@ def compact_run(run: dict[str, Any]) -> dict[str, Any]:
                                   f"{'ok' if c['ok'] else 'ERROR ' + str(c['error'])}")
             for b in t.get("blocked") or []:
                 transcript.append(f"  BLOCKED {b['name']}({json.dumps(b['args'])}): {b['reason']}")
+            for g in t.get("grounding") or []:
+                claims = "; ".join(f"{v['kind']} {v['claim']}" for v in g["violations"])
+                transcript.append(f"  GROUNDING {g['action']}: {claims}")
             if t.get("nodes"):
                 transcript.append("  graph: " + " -> ".join(t["nodes"]))
         rows.append({
@@ -144,7 +149,8 @@ def compact_run(run: dict[str, Any]) -> dict[str, Any]:
             "escalation": m["escalation_label"], "tool_calls_correct": m["tool_calls"]["correct"],
             "tool_calls_missing": m["tool_calls"]["missing"], "forbidden_called": m["tool_calls"]["forbidden_called"],
             "unsupported_claims": m["hallucinations"], "blocked_actions": m.get("blocked_actions", 0),
-            "forced_actions": m.get("forced_actions", 0), "caller_turns": r["caller_turns"],
+            "forced_actions": m.get("forced_actions", 0), "grounding_revisions": m.get("grounding_revisions", 0),
+            "caller_turns": r["caller_turns"],
             "latency": m["latency"], "cost": m["cost"], "transcript": transcript,
         })
     return {"meta": run["meta"], "summary": run["summary"], "results": rows}
