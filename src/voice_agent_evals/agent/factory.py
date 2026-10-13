@@ -5,8 +5,8 @@ from ..config import Settings
 from .base import Agent
 
 #: Agent variants, from no model at all to a governed LLM graph.
-AGENT_KINDS = ("scripted", "prompt", "context", "graph")
-LLM_KINDS = ("prompt", "context", "graph", "llm")
+AGENT_KINDS = ("scripted", "prompt", "context", "graph", "graph+grounding")
+LLM_KINDS = ("prompt", "context", "graph", "graph+grounding", "llm")
 
 
 def make_agent(kind: str, backend: MockBackend, settings: Settings | None = None) -> Agent:
@@ -16,6 +16,7 @@ def make_agent(kind: str, backend: MockBackend, settings: Settings | None = None
     - ``prompt`` (alias ``llm``): system prompt + tools + full raw history.
     - ``context``: context engineering (facts, state summary, trimmed history, relevant policy).
     - ``graph``: ``context`` plus a governed state machine that gates tools in code.
+    - ``graph+grounding``: ``graph`` plus a pre-send grounding check on every reply.
     """
     kind = (kind or "scripted").lower()
     if kind == "scripted":
@@ -35,4 +36,8 @@ def make_agent(kind: str, backend: MockBackend, settings: Settings | None = None
         from .graph_agent import GraphAgent
 
         return GraphAgent(backend, settings)
+    if kind == "graph+grounding":
+        from .graph_agent import GroundedGraphAgent
+
+        return GroundedGraphAgent(backend, settings)
     raise ValueError(f"unknown agent {kind!r} (use one of: {', '.join(AGENT_KINDS)})")

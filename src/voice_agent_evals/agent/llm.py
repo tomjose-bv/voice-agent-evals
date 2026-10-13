@@ -121,6 +121,7 @@ class LLMAgent:
         self.transcript: list[tuple[str, str]] = []
         self.blocked: list[dict[str, Any]] = []  # guard refusals (graph variant only)
         self.scratch: list[dict[str, Any]] = []  # assistant/tool messages of the current turn
+        self.max_revisions = 1  # rewrites allowed per turn when review_reply rejects a draft
 
     # ------------------------------------------------------------------ hooks
     def build_messages(self) -> list[dict[str, Any]]:
@@ -143,6 +144,15 @@ class LLMAgent:
 
     def on_turn_end(self, text: str) -> str:
         """hook: may post-process the reply text."""
+        return text
+
+    def review_reply(self, text: str) -> str | None:
+        """hook: check a draft reply before it is sent. Return an instruction for the model to
+        rewrite it (the draft and the instruction are added to this turn's scratch), or None to accept."""
+        return None
+
+    def fallback_reply(self, text: str) -> str:
+        """hook: the reply to send when a draft still fails ``review_reply`` after ``max_revisions``."""
         return text
 
     # ------------------------------------------------------------------ loop
@@ -179,6 +189,7 @@ class LLMAgent:
         self.on_turn_start(user_text)
         p_tok = c_tok = 0
         text = ""
+        revisions = 0
         for _ in range(MAX_TOOL_ROUNDS):
             data = self.client.chat(self.build_messages(), self.tools_for_call())
             usage = data.get("usage") or {}
@@ -188,7 +199,16 @@ class LLMAgent:
             tool_calls = parse_tool_calls(msg)
             if not tool_calls:
                 text = (msg.get("content") or "").strip()
-                break
+                feedback = self.review_reply(text) if text else None
+                if feedback is None:
+                    break
+                if revisions >= self.max_revisions:
+                    text = self.fallback_reply(text)
+                    break
+                revisions += 1
+                # Only this turn's scratch sees the rejected draft; it never enters the transcript.
+                self.scratch += [{"role": "assistant", "content": text}, {"role": "user", "content": feedback}]
+                continue
             for tc in tool_calls:
                 tc.setdefault("id", f"call-{uuid.uuid4().hex[:8]}")
                 tc.setdefault("type", "function")
@@ -201,7 +221,8 @@ class LLMAgent:
                 self.messages.append(tool_msg)
                 self.scratch.append(tool_msg)
         else:
-            text = text or FALLBACK_TEXT
+            # Out of rounds: any text left here is a draft that review_reply rejected.
+            text = self.fallback_reply(text) if text else FALLBACK_TEXT
         text = self.on_turn_end(text or FALLBACK_TEXT)
         self.messages.append({"role": "assistant", "content": text})
         if self.escalated and not self.ended:

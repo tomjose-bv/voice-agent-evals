@@ -1,16 +1,20 @@
-"""`graph` variant: the `context` agent run as a governed state machine (see ``graph.py``)."""
+"""`graph` variant: the `context` agent run as a governed state machine (see ``graph.py``).
+
+`graph+grounding` adds a pre-send grounding check to the response step (see ``grounding.py``).
+"""
 
 from __future__ import annotations
 
 from typing import Any
 
-from ..backend import MockBackend
+from ..backend import OUTAGE_CREDIT_AMOUNT, MockBackend
 from ..config import Settings
 from ..tools import TOOL_SCHEMAS
 from .base import AgentTurn
 from .context import Facts, extract_facts
 from .context_agent import ContextAgent
 from .graph import ESCALATE, NODES, check_tool, escalation_trigger, pending_intents, route
+from .grounding import Evidence, Violation, check_reply, evidence_for, revision_request, strip_unsupported
 from .llm import ChatClient
 
 TRANSFER_LINE = "I'm transferring you to a colleague now."
@@ -83,4 +87,65 @@ class GraphAgent(ContextAgent):
     def respond(self, user_text: str) -> AgentTurn:
         turn = super().respond(user_text)
         turn.nodes = list(self.turn_nodes)
+        return turn
+
+
+GROUNDING_INSTRUCTIONS = (
+    "GROUNDING: state amounts, dates, outage status, bookings, credits and references only if they appear "
+    "under VERIFIED FACTS or in the caller's words. If a fact you need is missing, call this step's tool for it "
+    "or say you cannot confirm it yet. Never fill in a value yourself."
+)
+
+
+class GroundedGraphAgent(GraphAgent):
+    """`graph+grounding`: the `graph` agent plus a pre-send grounding check in the response step.
+
+    Every draft reply is checked against the verified tool results and the caller's words
+    (``grounding.check_reply``). An unsupported draft is sent back to the model once with the
+    specific violations (tools stay available, so it can fetch the missing fact). If the rewrite
+    still fails, the unsupported sentences are dropped and replaced by a plain "can't confirm".
+    """
+
+    name = "graph+grounding"
+
+    def __init__(self, backend: MockBackend, settings: Settings, client: ChatClient | None = None) -> None:
+        super().__init__(backend, settings, client)
+        self.grounding: list[dict[str, Any]] = []  # one record per rejected draft
+        self._turn_grounding: list[dict[str, Any]] = []
+
+    def on_turn_start(self, user_text: str) -> None:
+        super().on_turn_start(user_text)
+        self._turn_grounding = []
+
+    def extra_instructions(self) -> str:
+        return f"{super().extra_instructions()}\n{GROUNDING_INSTRUCTIONS}"
+
+    def _evidence(self) -> Evidence:
+        return evidence_for(self.tools.log, self.transcript, self.backend.today, self.backend.credit_limit,
+                            OUTAGE_CREDIT_AMOUNT)
+
+    def _violations(self, text: str) -> list[Violation]:
+        # In the escalate step the graph guarantees the transfer (see on_turn_end), so saying so is grounded.
+        return check_reply(text, self._evidence(), self.backend.today, allow_transfer_claim=self.node == "escalate")
+
+    def review_reply(self, text: str) -> str | None:
+        violations = self._violations(text)
+        if not violations:
+            return None
+        rec = {"node": self.node, "draft": text, "violations": [v.to_dict() for v in violations], "action": "revise"}
+        self.grounding.append(rec)
+        self._turn_grounding.append(rec)
+        return revision_request(violations, NODES[self.node].tools)
+
+    def fallback_reply(self, text: str) -> str:
+        safe = strip_unsupported(text, self._evidence(), self.backend.today,
+                                 allow_transfer_claim=self.node == "escalate")
+        if self._turn_grounding:
+            self._turn_grounding[-1]["action"] = "fallback"
+            self._turn_grounding[-1]["sent"] = safe
+        return safe
+
+    def respond(self, user_text: str) -> AgentTurn:
+        turn = super().respond(user_text)
+        turn.grounding = list(self._turn_grounding)
         return turn

@@ -16,6 +16,7 @@ class AgentTurn:
     completion_tokens: int = 0
     blocked: list[dict] = field(default_factory=list)  # tool calls refused by a guard
     nodes: list[str] = field(default_factory=list)  # graph nodes visited (graph variant)
+    grounding: list[dict] = field(default_factory=list)  # drafts rejected by a grounding check
 
 
 class Agent(Protocol):
