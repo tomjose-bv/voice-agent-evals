@@ -192,7 +192,7 @@ def test_websocket_server_end_to_end():
 VOICE = ROOT / "models" / "en_US-lessac-medium.onnx"
 
 
-@pytest.mark.skipif(not VOICE.exists() or os.environ.get("VAE_SKIP_MODEL_TESTS"), reason="Piper voice not downloaded")
+@pytest.mark.skipif(not VOICE.exists() or os.environ.get("VAE_SKIP_MODEL_TESTS"), reason="needs the Piper voice in models/ and a faster-whisper download (skipped when absent or VAE_SKIP_MODEL_TESTS is set)")
 def test_piper_to_whisper_round_trip():
     """Real TTS -> real STT: synthesise a sentence with Piper and transcribe it with faster-whisper."""
     import numpy as np
