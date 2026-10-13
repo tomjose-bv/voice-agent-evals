@@ -1,5 +1,7 @@
 # voice-agent-evals
 
+[![CI](https://github.com/tomjose-bv/voice-agent-evals/actions/workflows/ci.yml/badge.svg)](https://github.com/tomjose-bv/voice-agent-evals/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **Test your customer-service voice agent against 25 realistic calls before a real customer hears it.**
 
 Voice agents are hard to evaluate before going live. A demo call that goes well
