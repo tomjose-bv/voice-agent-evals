@@ -4,7 +4,7 @@ All notable changes to this project are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
-## [0.1.0] - Unreleased
+## [0.1.0] - 2026-10-18
 
 First public release. Everything below runs locally; no cloud API is used by default.
 
@@ -60,7 +60,7 @@ First public release. Everything below runs locally; no cloud API is used by def
 - Private-terms checker (`scripts/check_terms.py`).
 - Tests use fakes and need no model, network or audio hardware. CI runs them
   on Ubuntu and Windows with Python 3.11 and 3.12.
-- README with architecture, measured results on `qwen2.5:3b`, metric
+- README with architecture, measured three-seed results on `qwen2.5:3b` for all five agents, metric
   definitions, limitations and responsible-AI notes. MIT licence.
 
-[0.1.0]: https://github.com/tomjose-bv/voice-agent-evals/commits/main
+[0.1.0]: https://github.com/tomjose-bv/voice-agent-evals/releases/tag/v0.1.0

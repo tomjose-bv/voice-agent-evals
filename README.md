@@ -131,153 +131,80 @@ then set `VAE_LLM_MODEL` in `.env`. Any OpenAI-compatible local server works.
 
 ## Results
 
-> **Measured, not estimated.** Backend: `scripted` agent vs `scripted` caller.
-> Date: 2026-10-09. Machine: Intel Core i7-1185G7 (4 cores / 8 threads),
-> 16 GB RAM (15.7 GB usable), Windows 11, Python 3.12.10, CPU only.
-> Command: `vae run`. A sample report is in [`docs/sample-report.html`](docs/sample-report.html).
-
-| Metric | Scripted backend |
-|---|---|
-| Scenarios | 25 |
-| Passed (all checks) | 24/25 (96.0%) |
-| Task completion | 96.0% |
-| Escalation precision | 100.0% |
-| Escalation recall | 100.0% |
-| Escalation confusion (TP/FP/FN/TN) | 4/0/0/21 |
-| Tool-call correctness | 100.0% |
-| Hallucination-free conversations (rule-based) | 100.0% (0 unsupported claims flagged) |
-| Mean caller turns | 3.04 |
-| Agent latency per turn p50 / p95 | 0.07 ms / 0.17 ms |
-| Mean wall-clock per conversation | 0.24 ms |
-| Tokens per conversation | 0 (no model) |
-| API cost | $0.00 |
-
-**How to read this.** These numbers describe the *harness and the rule-based
-baseline*, not an LLM. The same person wrote the scripted agent and the caller
-scripts, so a high pass rate is expected. It shows the pipeline works end to
-end. It does not show conversational quality. The one failure is real and
-useful. In `ambiguous_request` the caller says their bill is "higher than last
-month". The rules don't treat that as a dispute, so the agent reads out the
-total but never explains the new *Static IP add-on* line. That is exactly the
-kind of gap the suite is meant to catch.
-
-![HTML eval report: summary cards (24/25 passed) and the scenario table with the failing ambiguous_request row expanded to show its transcript and tool calls](docs/media/eval-report.png)
-
-*`results/report.html` from a real `vae run`. Click any row to see the transcript, tool calls and final backend state. Here the failing `ambiguous_request` row is expanded.*
-
-**API cost is $0** because every model runs on your machine. There is no
-per-token bill. The real cost of a local model is compute: wall-clock time and
-tokens processed, which the report records for each conversation.
-
-### From prompt to governed graph
-
-Same 25 scenarios, same fixed scripted caller, same local model. Only the
-agent's architecture changes, one layer at a time:
-
-1. **`prompt`:** the model gets a system prompt, the tool schemas and the raw
-   conversation history. Nothing else.
-2. **`context`** (context engineering): each turn, a context builder assembles
-   what the model sees within a token budget:
-   - a block of **verified facts** taken from tool results, which the agent may state
-   - a running **conversation-state summary** instead of unbounded history
-   - **trimmed** tool results
-   - only the **policy snippets** relevant to the caller's intent
-3. **`graph`** (governed agent graph): the `context` agent runs inside an
-   explicit state machine. Each step offers only its own tools, and routing
-   and escalation triggers are decided in code, not left to the model.
-4. The **harness** measures all of them the same way.
-
-```mermaid
-flowchart LR
-    U[understand_intent] --> V[verify_identity]
-    U --> RO[resolve_outage]
-    V --> RB[resolve_billing]
-    V --> RT[resolve_technician]
-    RO --> C[confirm]
-    RB --> C
-    RT --> C
-    C --> W[wrap_up]
-    ANY((any step)) -. "human requested · legal threat ·<br/>credit over limit · identity failed twice" .-> E[escalate]
-```
-
-The graph blocks account tools until identity is verified, keeps
-`issue_credit` within the limit, and forces escalation on the four triggers
-above. Each step's tool list is enforced in code, and the model gets a policy
-error if it tries anything else.
-
 > **Measured, not estimated.** Model: `qwen2.5:3b` (Q4_K_M) via Ollama, temperature 0,
-> seed 7, `max_tokens` 400, 4,096-token context window. Caller: `scripted` (fixed).
-> **One run per variant**: `prompt` on 2026-10-12, `context` and `graph` on 2026-10-13.
-> Machine: Intel Core i7-1185G7, 16 GB RAM, Windows 11, Python 3.12.10, CPU only.
-> Command: `vae compare --agents scripted prompt context graph --seeds 7`.
-> Full tables and per-scenario results: [`docs/results/compare.md`](docs/results/compare.md).
+> seeds 7, 11 and 13, `max_tokens` 400, 4,096-token context window. Caller: `scripted` (fixed).
+> **Three runs per LLM variant** (one per seed), 2026-10-12 to 2026-10-14, and
+> `graph+grounding` on 2026-10-18. Machine: Intel Core i7-1185G7, 16 GB RAM, Windows 11,
+> Python 3.12.10, CPU only.
+> Command: `vae compare --agents scripted prompt context graph graph+grounding --seeds 7 11 13`.
+> Full tables, per-seed and per-scenario results: [`docs/results/compare.md`](docs/results/compare.md).
 
-**All 25 scenarios**
+**All 25 scenarios** (mean of three seeds; the range is shown where the seeds differed)
 
-| Metric | `prompt` | `context` | `graph` | *scripted reference* |
-|---|---|---|---|---|
-| Passed (all checks) | 4/25 (16%) | 7/25 (28%) | **11/25 (44%)** | *24/25* |
-| Task completion | 28% | 28% | **56%** | *96%* |
-| Escalation recall | 25% (1 of 4) | 25% (1 of 4) | **100% (4 of 4)** | *100%* |
-| Escalation precision | 100% | 100% | 100% | *100%* |
-| Tool-call correctness | 28% | 36% | **52%** | *100%* |
-| Hallucination-free (rule-based) | **92%** | **92%** | 88% | *100%* |
-| Unsupported claims flagged | 3 | **2** | 5 | *0* |
-| Tokens per conversation | 5,958 | 5,951 | **4,243** | *0* |
-| Latency per turn p50 / p95 | **5.2 s / 8.2 s** | 17.3 s / 29.4 s ¹ | 9.1 s / 23.1 s | *<1 ms* |
+| Metric | `prompt` | `context` | `graph` | `graph+grounding` | *scripted reference* |
+|---|---|---|---|---|---|
+| Passed (all checks) | 4/25 (16%) | 7.3/25 (28–32%) | 11/25 (44%) | **11.7/25 (44–48%)** | *24/25* |
+| Task completion | 28% | 29% (28–32%) | **56%** | **56%** | *96%* |
+| Escalation recall | 25% (1 of 4) | 25% (1 of 4) | **100% (4 of 4)** | **100% (4 of 4)** | *100%* |
+| Escalation precision | 100% | 100% | 100% | 100% | *100%* |
+| Tool-call correctness | 28% | 37% (36–40%) | 51% (48–52%) | **60%** | *100%* |
+| Hallucination-free (rule-based) | 92% | 92% | 89% (88–92%) | **95% (92–96%)** | *100%* |
+| Unsupported claims flagged | 3 | 2 | 4.7 (4–5) | **1.7 (1–3)** | *0* |
+| Tokens per conversation | 5,958 | 6,004 | **4,180** | 4,711 | *0* |
 
 **Held-out scenarios only** (6 scenarios, fixed in a separate commit *before*
-the `context` and `graph` agents were written, and never used to tune them)
+the `context`, `graph` and `graph+grounding` agents were written, and never used to tune them)
 
-| Metric | `prompt` | `context` | `graph` |
-|---|---|---|---|
-| Passed (all checks) | 1/6 | 2/6 | **4/6** |
-| Task completion | 17% | 33% | **83%** |
-| Escalation recall | 50% | 50% | **100%** |
-| Hallucination-free (rule-based) | **100%** | **100%** | 83% |
+| Metric | `prompt` | `context` | `graph` | `graph+grounding` |
+|---|---|---|---|---|
+| Passed (all checks) | 1/6 | 2.3/6 (2–3) | **4/6** | 3.7/6 (3–4) |
+| Task completion | 17% | 39% (33–50%) | **83%** | 67% |
+| Escalation recall | 50% | 50% | **100%** | **100%** |
+| Hallucination-free (rule-based) | **100%** | **100%** | 83% | 94% (83–100%) |
 
-¹ During the `context` run the laptop's screen turned off and Windows Modern
-Standby paused the process for about 32 minutes. That inflates `context`
-wall-clock and p95 latency (most visibly on the held-out set). Pass/fail and
-quality metrics are unaffected, because outputs are deterministic at
-temperature 0. Clean `context` timing is **TBD — measure by** re-running
-`vae compare --agents context --seeds 7` with the display kept on.
+**Latency** isn't compared across variants. The runs were spread over several days, the
+laptop was in use during some of them, and twice it went to sleep in the middle of a run
+(about 32 minutes during `context` seed 7, and about 3.4 hours during `graph+grounding`
+seed 13). Pass/fail and quality metrics are unaffected because outputs are deterministic
+at temperature 0: the scenario that ran across the 3.4-hour sleep used the same 5,951
+tokens and failed the same way on all three seeds. Per-turn latency for each run is in
+[`docs/results/compare.md`](docs/results/compare.md). Clean timings are
+**TBD — measure by** re-running `vae compare` on an otherwise idle machine that is kept awake.
 
 **What the numbers say**
 
 - **Each layer helped the pass rate:** 4 → 7 → 11 of 25 overall, and 1 → 2 → 4 of 6
   on the held-out scenarios.
 - **Context engineering helped less than expected on a 3B model.** Tool-call
-  correctness rose (28% → 36%) and two more scenarios passed. Task completion
-  didn't move (28%), and escalation recall stayed at 1 of 4. A small model given
+  correctness rose (28% → 37%) and two or three more scenarios passed. Task completion
+  barely moved (28% → 29%), and escalation recall stayed at 1 of 4. A small model given
   better context still misses *when* to hand over.
 - **The governed graph made the biggest difference, and it came from
   routing.** Escalation recall went from 25% to 100% because the triggers are
   checked in code (4 escalations forced by the graph). Task completion doubled
-  (28% → 56%) because each step narrows the model to the right tools. It also
-  used about 29% fewer tokens per conversation than `context`. The tool guard
-  never had to block an action in these runs (0 blocked calls); the gains came
+  (29% → 56%) because each step narrows the model to the right tools. It also
+  used about 30% fewer tokens per conversation than `context`. The tool guard
+  never had to block an action in the plain `graph` runs (0 blocked calls); the gains came
   from routing and per-step tool scoping, not from catching bad calls.
-- **One metric got worse.** The graph had the most unsupported claims (5 vs 2–3)
-  and the lowest hallucination-free rate (88%). A plausible reason is that
-  forced steps push the model to say something when it has little to go on.
-  That's the next thing to fix: grounding checks inside the graph's response step.
-- **None of these agents is production-ready.** 44% is far from the scripted
+- **The graph had the most unsupported claims, and grounding fixed most of them.**
+  `graph+grounding` cut flagged claims from 4.7 to 1.7 per run and raised the
+  hallucination-free rate from 89% to 95%. Tool-call correctness also rose (51% → 60%),
+  for about 13% more tokens than `graph`. The grounding check rejected 2 drafts per run;
+  each rewrite passed, so no sentences had to be dropped.
+- **Grounding didn't raise the held-out score.** On the 6 held-out scenarios it passed
+  3.7 of 6 against the graph's 4 of 6. It gained `outage_none_book_technician` on two seeds,
+  but lost `technician_sunday_retry` on all three. One or two scenarios is within
+  noise at this size, so this is a trade-off to investigate, not a clear win.
+- **None of these agents is production-ready.** 48% at best is far from the scripted
   baseline. Several scenario types (multi-intent requests, spoken phone numbers,
-  goodwill credits, AI-disclosure questions) failed for every LLM variant.
+  goodwill credits, AI-disclosure questions, ambiguous requests) failed for every LLM variant
+  on every seed.
 
-**Grounding variant (`graph+grounding`).** The `graph` agent plus a pre-send grounding check in its
-response step: amounts, dates, outage status, completed actions and references in each draft reply
-must appear in a tool result or the caller's words. If they don't, the model rewrites the reply once
-(with the step's tools still available), and if it still fails, the unsupported sentences are dropped.
-The plain `graph` variant is unchanged, so the runs above stay reproducible. Results:
-**TBD — measure by** `vae compare --agents scripted prompt context graph graph+grounding --seeds 7 11 13 --resume`.
-
-**Caveats.** This is a single run per variant with one small model and 25
-scenarios, so a difference of one or two scenarios is within noise.
-Run-to-run variance is **TBD — measure by** `vae compare --agents prompt context graph --seeds 7 11 13`.
-The caller is scripted, so it doesn't adapt to the agent. The scenarios were
-written alongside the agents, which is why the held-out results are reported
+**Caveats.** Three seeds per variant with one small model and 25 scenarios. At temperature 0
+the seeds changed little: `prompt` gave identical results on all three, and the others
+differed by at most one scenario. So the ranges show run-to-run stability, not the spread you would see
+with sampling or different callers. The caller is scripted, so it doesn't adapt to the agent.
+The scenarios were written alongside the agents, which is why the held-out results are reported
 separately. Larger models (e.g. 7–8B) are **TBD — measure by** `--model <name>` on suitable hardware.
 
 ### Voice component timings
@@ -398,7 +325,7 @@ happened (for example a credit applied before the caller interrupted).
 - **Identity verification is simplified.** A phone or email match counts as verified. Real deployments need stronger checks.
 - **Energy VAD is basic.** It can be fooled by loud background noise, and speaker echo can trigger barge-in. Use headphones, or swap in a neural VAD.
 - **`tiny.en` struggles with alphanumerics** such as postcodes and account numbers.
-- LLM results are a single run of one small local model (`qwen2.5:3b`) on 25 scenarios; see the caveats under *From prompt to governed graph*.
+- LLM results are three seeded runs of one small local model (`qwen2.5:3b`) on 25 scenarios; see the caveats under *From prompt to governed graph*.
 
 ## Responsible AI notes
 
@@ -410,8 +337,8 @@ happened (for example a credit applied before the caller interrupted).
 
 ## Roadmap
 
-- Multi-seed variance runs and larger local models for the prompt / context / graph comparison.
-- Grounding checks inside the graph's response step (the graph variant had the most unsupported claims).
+- Larger local models (7–8B) and LLM callers for the prompt / context / graph comparison.
+- Find out why grounding lost `technician_sunday_retry`, and make grounding not cost held-out task completion.
 - Neural VAD (Silero via onnxruntime) and Moonshine STT option.
 - Streaming TTS (sentence-level) to cut time-to-first-audio.
 - Audio-level evals: synthesise caller turns with TTS, add noise and accents, and score the whole voice pipeline, including word error rate on account details.

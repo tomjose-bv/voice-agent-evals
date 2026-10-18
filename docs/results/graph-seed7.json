@@ -122,6 +122,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 3,
    "latency": {
     "n": 3,
@@ -173,6 +174,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 4,
    "latency": {
     "n": 4,
@@ -226,6 +228,7 @@
    ],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 3,
    "latency": {
     "n": 3,
@@ -297,6 +300,7 @@
    ],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 3,
    "latency": {
     "n": 3,
@@ -349,6 +353,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 3,
    "latency": {
     "n": 3,
@@ -400,6 +405,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 3,
    "latency": {
     "n": 3,
@@ -442,6 +448,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 1,
+   "grounding_revisions": 0,
    "caller_turns": 1,
    "latency": {
     "n": 1,
@@ -483,6 +490,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 2,
    "latency": {
     "n": 2,
@@ -521,6 +529,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 1,
+   "grounding_revisions": 0,
    "caller_turns": 1,
    "latency": {
     "n": 1,
@@ -557,6 +566,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 1,
+   "grounding_revisions": 0,
    "caller_turns": 3,
    "latency": {
     "n": 3,
@@ -610,6 +620,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 4,
    "latency": {
     "n": 4,
@@ -656,6 +667,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 1,
+   "grounding_revisions": 0,
    "caller_turns": 3,
    "latency": {
     "n": 3,
@@ -717,6 +729,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 3,
    "latency": {
     "n": 3,
@@ -769,6 +782,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 4,
    "latency": {
     "n": 4,
@@ -815,6 +829,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 3,
    "latency": {
     "n": 3,
@@ -856,6 +871,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 3,
    "latency": {
     "n": 3,
@@ -908,6 +924,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 4,
    "latency": {
     "n": 4,
@@ -961,6 +978,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 5,
    "latency": {
     "n": 5,
@@ -1011,6 +1029,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 2,
    "latency": {
     "n": 2,
@@ -1059,6 +1078,7 @@
    ],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 3,
    "latency": {
     "n": 3,
@@ -1101,6 +1121,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 2,
    "latency": {
     "n": 2,
@@ -1150,6 +1171,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 3,
    "latency": {
     "n": 3,
@@ -1192,6 +1214,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 4,
    "latency": {
     "n": 4,
@@ -1238,6 +1261,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 3,
    "latency": {
     "n": 3,
@@ -1281,6 +1305,7 @@
    "unsupported_claims": [],
    "blocked_actions": 0,
    "forced_actions": 0,
+   "grounding_revisions": 0,
    "caller_turns": 4,
    "latency": {
     "n": 4,
