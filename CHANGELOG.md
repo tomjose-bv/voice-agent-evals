@@ -4,6 +4,13 @@ All notable changes to this project are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- README latency table from a single uninterrupted timing run of every variant
+  (`docs/results/timing-seed7.md`).
+
 ## [0.1.0] - 2026-10-18
 
 First public release. Everything below runs locally; no cloud API is used by default.

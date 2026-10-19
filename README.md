@@ -162,14 +162,28 @@ the `context`, `graph` and `graph+grounding` agents were written, and never used
 | Escalation recall | 50% | 50% | **100%** | **100%** |
 | Hallucination-free (rule-based) | **100%** | **100%** | 83% | 94% (83–100%) |
 
-**Latency** isn't compared across variants. The runs were spread over several days, the
-laptop was in use during some of them, and twice it went to sleep in the middle of a run
-(about 32 minutes during `context` seed 7, and about 3.4 hours during `graph+grounding`
-seed 13). Pass/fail and quality metrics are unaffected because outputs are deterministic
-at temperature 0: the scenario that ran across the 3.4-hour sleep used the same 5,951
-tokens and failed the same way on all three seeds. Per-turn latency for each run is in
-[`docs/results/compare.md`](docs/results/compare.md). Clean timings are
-**TBD — measure by** re-running `vae compare` on an otherwise idle machine that is kept awake.
+**Latency.** The quality runs above were spread over several days, the laptop was in use
+during some of them, and twice it went to sleep in the middle of a run, so their timings
+aren't comparable. The sleeps didn't change the outcomes: the scenario that ran across a
+3.4-hour sleep used the same 5,951 tokens and failed the same way as on the other seeds.
+Timings therefore come from a separate run of every variant in one sitting:
+2026-10-18, 21:55–22:58, seed 7, with no sleep or pause.
+
+| | `prompt` | `context` | `graph` | `graph+grounding` |
+|---|---|---|---|---|
+| Latency per turn p50 / p95 | 5.2 s / 8.1 s | 15.8 s / 26.7 s | 9.5 s / 25.1 s | 12.5 s / 28.0 s |
+| Wall-clock per conversation | 15.5 s | 47.6 s | 40.5 s | 46.0 s |
+
+Caveat: the laptop switched to battery power at 22:19, partway through `context`, and stayed
+on battery for `graph` and `graph+grounding`. Windows may slow the CPU on battery, so those
+three can read somewhat slower than on mains power. `context`, which ran mostly on mains
+power, was already about three times slower per turn than `prompt` (p50 15.8 s vs 5.2 s).
+Full tables:
+[`docs/results/timing-seed7.md`](docs/results/timing-seed7.md).
+
+Temperature 0 is close to deterministic, but not exactly. In this timing run
+`graph+grounding` passed 13 of 25 scenarios, against 12 of 25 for the same seed in the main run
+above. The other variants matched exactly. The tables above use the main runs.
 
 **What the numbers say**
 
